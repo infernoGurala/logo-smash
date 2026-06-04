@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Logo Poll</title>
+  <meta name="description" content="Vote on your favorite logos in this clean, modern, and mobile-friendly poll application.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #050811;
+      --card-bg: rgba(13, 20, 38, 0.65);
+      --border-color: rgba(255, 255, 255, 0.05);
+      --text-primary: #f8fafc;
+      --text-secondary: #64748b;
+      
+      --accent-love: #10b981;
+      --accent-love-glow: rgba(16, 185, 129, 0.2);
+      
+      --accent-hate: #f43f5e;
+      --accent-hate-glow: rgba(244, 63, 94, 0.2);
+      
+      --accent-primary: #6366f1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Ambient atmospheric background glows */
+    .bg-glow-1 {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, rgba(0, 0, 0, 0) 70%);
+      filter: blur(140px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-glow-2 {
+      position: absolute;
+      bottom: -10%;
+      right: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(217, 70, 239, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+      filter: blur(140px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      animation: screenFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes screenFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96) translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Progress bar styling */
+    .progress-bar-container {
+      width: 100%;
+      margin-bottom: 1.75rem;
+      padding: 0 0.25rem;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .progress-number {
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.01);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #d946ef);
+      width: 0%;
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Swipe card stack viewport */
+    .stack-container {
+      width: 100%;
+      height: 380px;
+      position: relative;
+      perspective: 1000px;
+      margin-bottom: 1.25rem;
+    }
+
+    .swipe-card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 28px;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center bottom;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .swipe-card:active {
+      cursor: grabbing;
+    }
+
+    .logo-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 18px;
+      padding: 1.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      transition: transform 0.3s ease;
+    }
+
+    /* Swipe feedback overlays */
+    .swipe-indicator {
+      position: absolute;
+      top: 1.25rem;
+      font-size: 0.85rem;
+      font-weight: 900;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 10;
+    }
+
+    .swipe-indicator.love {
+      right: 1.25rem;
+      border: 2px solid var(--accent-love);
+      color: var(--accent-love);
+      transform: rotate(12deg);
+    }
+
+    .swipe-indicator.hate {
+      left: 1.25rem;
+      border: 2px solid var(--accent-hate);
+      color: var(--accent-hate);
+      transform: rotate(-12deg);
+    }
+
+    .logo-filename-label {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.025em;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Helper visual instruction label */
+    .instruction-helper {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      opacity: 0.5;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Navigation / Action buttons */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      padding: 0 0.25rem;
+    }
+
+    .btn-action {
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 1.1rem 2rem;
+      border-radius: 18px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .btn-action:active {
+      transform: translateY(0);
+    }
+
+    .btn-action.love {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(20, 184, 166, 0.08));
+      border-color: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+    }
+
+    .btn-action.love:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15));
+      border-color: var(--accent-love);
+      box-shadow: 0 0 25px var(--accent-love-glow);
+    }
+
+    .btn-action.hate {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.08), rgba(225, 29, 72, 0.08));
+      border-color: rgba(244, 63, 94, 0.25);
+      color: #fb7185;
+    }
+
+    .btn-action.hate:hover {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(225, 29, 72, 0.15));
+      border-color: var(--accent-hate);
+      box-shadow: 0 0 25px var(--accent-hate-glow);
+    }
+
+    /* Summary list layout */
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 1.75rem;
+      width: 100%;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .summary-scroll {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      padding: 0.25rem;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-logo-info {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      overflow: hidden;
+    }
+
+    .summary-thumb-box {
+      width: 38px;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 6px;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .summary-thumb-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .summary-logo-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .summary-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .tag-love {
+      background: rgba(16, 185, 129, 0.08);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+
+    .tag-hate {
+      background: rgba(244, 63, 94, 0.08);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #d946ef);
+      color: #ffffff;
+      border: none;
+      outline: none;
+      padding: 1.1rem;
+      border-radius: 18px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.35);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.45);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Thank you card layout */
+    .thanks-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 3rem 1.75rem;
+      width: 100%;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .thanks-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      color: var(--accent-love);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .thanks-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .thanks-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Setup issue layout */
+    .setup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 3rem 1.75rem;
+      width: 100%;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .setup-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+
+    .setup-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Scrollbar styling */
+    .summary-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .summary-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .summary-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+    }
+
+    /* Spinner style */
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border-left-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Screen edge dynamic glows */
+    .side-glow {
+      position: absolute;
+      top: 0;
+      width: 35%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .left-glow {
+      left: 0;
+      background: radial-gradient(circle at 0% 50%, rgba(244, 63, 94, 0.22) 0%, rgba(244, 63, 94, 0) 70%);
+      transform: translateX(-40px);
+    }
+
+    .right-glow {
+      right: 0;
+      background: radial-gradient(circle at 100% 50%, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 70%);
+      transform: translateX(40px);
+    }
+
+    /* Bottom footer watermark */
+    footer {
+      margin-top: 2rem;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.08);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Atmospheric backgrounds -->
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- Screen edge dynamic glows -->
+  <div id="glow-left" class="side-glow left-glow"></div>
+  <div id="glow-right" class="side-glow right-glow"></div>
+
+  <div class="container">
+    
+    <!-- LOADING CARD SCREEN -->
+    <div id="screen-loading" class="screen active">
+      <div class="setup-card">
+        <h1 class="setup-title">Initializing App</h1>
+        <p class="setup-desc">Please wait while assets are loaded.</p>
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- ERROR SETUP SCREEN -->
+    <div id="screen-error" class="screen">
+      <div class="setup-card">
+        <h1 class="setup-title">No Logos Loaded</h1>
+        <p class="setup-desc" id="error-message">Drop logo image assets in the logos/ folder and execute generate.py.</p>
+        <button class="btn-action" style="width: 100%;" onclick="window.location.reload()">Retry Load</button>
+      </div>
+    </div>
+
+    <!-- MAIN POLL SWIPE SCREEN -->
+    <div id="screen-poll" class="screen">
+      <div class="progress-bar-container">
+        <div class="progress-meta">
+          <span class="progress-title">Logo Review</span>
+          <span class="progress-number" id="progress-indicator">0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="stack-container">
+        <div id="voting-card" class="swipe-card">
+          <div id="indicator-love" class="swipe-indicator love">Love</div>
+          <div id="indicator-hate" class="swipe-indicator hate">Hate</div>
+          
+          <div class="logo-container">
+            <img id="logo-display" class="logo-img" src="" alt="Logo viewport">
+          </div>
+        </div>
+      </div>
+
+      <div class="instruction-helper">
+        Swipe Left to Reject | Swipe Right to Approve
+      </div>
+
+      <div class="controls">
+        <button class="btn-action hate" id="btn-hate" onclick="triggerButtonVote('Hate')">Hate</button>
+        <button class="btn-action love" id="btn-love" onclick="triggerButtonVote('Love')">Love</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY SCREEN -->
+    <div id="screen-summary" class="screen">
+      <div class="summary-card">
+        <h1 class="summary-title">Summary list</h1>
+        <p class="summary-subtitle">Verify your answers below before submitting.</p>
+        
+        <div class="summary-scroll" id="summary-list">
+          <!-- Dynamically populated rows -->
+        </div>
+
+        <button class="btn-submit" id="btn-submit" onclick="submitVotes()">
+          <span id="submit-spinner" class="spinner" style="display: none;"></span>
+          Submit Selections
+        </button>
+      </div>
+    </div>
+
+    <!-- THANK YOU SCREEN -->
+    <div id="screen-thanks" class="screen">
+      <div class="thanks-card">
+        <div class="thanks-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h1 class="thanks-title">Thank You</h1>
+        <p class="thanks-desc">Your selections have been successfully recorded in the Google Sheet.</p>
+        <button class="btn-action" style="width: 100%;" onclick="restartPoll()">Vote Again</button>
+      </div>
+    </div>
+
+    <footer>
+      Logo Poll System
+    </footer>
+
+  </div>
+
+  <script>
+    // Configuration - Google Apps Script URL
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycby6FFy9OAvPSXPOGySSckOaz_OF4enza9UDNIrte7qVzGUeaGP549gXrDYCMfWH3EOBLQ/exec";
+
+    // Application state
+    let logos = [];
+    let currentIndex = 0;
+    let votes = {};
+
+    // Touch/Drag physics tracking
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let isDragging = false;
+    const dragThreshold = 90;
+
+    // DOM Elements
+    const screenLoading = document.getElementById('screen-loading');
+    const screenError = document.getElementById('screen-error');
+    const screenPoll = document.getElementById('screen-poll');
+    const screenSummary = document.getElementById('screen-summary');
+    const screenThanks = document.getElementById('screen-thanks');
+    
+    const votingCard = document.getElementById('voting-card');
+    const logoDisplay = document.getElementById('logo-display');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const progressBar = document.getElementById('progress-fill');
+    const glowLeft = document.getElementById('glow-left');
+    const glowRight = document.getElementById('glow-right');
+    
+    const indicatorLove = document.getElementById('indicator-love');
+    const indicatorHate = document.getElementById('indicator-hate');
+    const summaryList = document.getElementById('summary-list');
+    const btnSubmit = document.getElementById('btn-submit');
+    const submitSpinner = document.getElementById('submit-spinner');
+    
+    const btnLove = document.getElementById('btn-love');
+    const btnHate = document.getElementById('btn-hate');
+
+    // Switch between screens
+    function showScreen(screen) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      screen.classList.add('active');
+    }
+
+    // Initialize application
+    async function init() {
+      try {
+        const response = await fetch('logos.json');
+        if (!response.ok) {
+          throw new Error('Failed to retrieve logos.json from root.');
+        }
+        
+        logos = await response.json();
+        
+        if (!Array.isArray(logos) || logos.length === 0) {
+          throw new Error('The logos.json file is empty.');
+        }
+
+        currentIndex = 0;
+        votes = {};
+        
+        // Initialize touch and mouse gesture bindings
+        initGestures();
+        
+        showScreen(screenPoll);
+        updateDisplay();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = err.message || 'Make sure generate.py has been run and logos.json is available.';
+        showScreen(screenError);
+      }
+    }
+
+    // Update poll screen details
+    function updateDisplay() {
+      if (currentIndex >= logos.length) {
+        renderSummary();
+        showScreen(screenSummary);
+        return;
+      }
+
+      // Reset card layout parameters instantly (no transition)
+      votingCard.style.transition = 'none';
+      votingCard.style.transform = 'scale(0.92) translateY(25px)';
+      votingCard.style.opacity = '0';
+      votingCard.style.borderColor = '';
+      votingCard.style.boxShadow = '';
+      indicatorLove.style.opacity = 0;
+      indicatorHate.style.opacity = 0;
+      
+      // Reset side glows
+      glowLeft.style.transition = 'none';
+      glowRight.style.transition = 'none';
+      glowLeft.style.opacity = 0;
+      glowLeft.style.transform = 'translateX(-40px)';
+      glowRight.style.opacity = 0;
+      glowRight.style.transform = 'translateX(40px)';
+
+      // Load current asset
+      const filename = logos[currentIndex];
+      logoDisplay.src = `logos/${filename}`;
+      logoDisplay.alt = `Logo: ${filename}`;
+      
+      // Update progress bar
+      progressIndicator.textContent = `${currentIndex + 1} / ${logos.length}`;
+      const percentage = (currentIndex / logos.length) * 100;
+      progressBar.style.width = `${percentage}%`;
+      
+      // Re-enable click actions
+      btnLove.disabled = false;
+      btnHate.disabled = false;
+
+      // Animate card entrance
+      setTimeout(() => {
+        votingCard.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease';
+        votingCard.style.transform = 'scale(1) translateY(0)';
+        votingCard.style.opacity = '1';
+      }, 50);
+    }
+
+    // Gesture input bindings
+    function initGestures() {
+      votingCard.addEventListener('touchstart', dragStart, { passive: true });
+      votingCard.addEventListener('touchmove', dragMove, { passive: false });
+      votingCard.addEventListener('touchend', dragEnd);
+
+      votingCard.addEventListener('mousedown', dragStart);
+      votingCard.addEventListener('mousemove', dragMove);
+      window.addEventListener('mouseup', dragEnd);
+    }
+
+    function getEventX(e) {
+      return e.touches ? e.touches[0].clientX : e.clientX;
+    }
+
+    function getEventY(e) {
+      return e.touches ? e.touches[0].clientY : e.clientY;
+    }
+
+    function dragStart(e) {
+      if (currentIndex >= logos.length || isDragging) return;
+      isDragging = true;
+      startX = getEventX(e);
+      startY = getEventY(e);
+      
+      votingCard.style.transition = 'none';
+    }
+
+    function dragMove(e) {
+      if (!isDragging) return;
+      
+      currentX = getEventX(e);
+      currentY = getEventY(e);
+      
+      const deltaX = currentX - startX;
+      const deltaY = currentY - startY;
+      
+      // Prevent screen bouncing when swiping horizontally
+      if (Math.abs(deltaX) > 10 && e.cancelable) {
+        e.preventDefault();
+      }
+      
+      // Compute tilt and displacement
+      const rotate = deltaX * 0.06;
+      votingCard.style.transform = `translate3d(${deltaX}px, ${deltaY * 0.35}px, 0) rotate(${rotate}deg)`;
+      
+      // Visual feedback mapping
+      if (deltaX > 0) {
+        const ratio = Math.min(deltaX / dragThreshold, 1);
+        indicatorLove.style.opacity = ratio;
+        indicatorHate.style.opacity = 0;
+        votingCard.style.borderColor = `rgba(16, 185, 129, ${ratio * 0.5})`;
+        votingCard.style.boxShadow = `0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, ${ratio * 0.2})`;
+        
+        // Right glow dynamic activation
+        glowRight.style.transition = 'none';
+        glowRight.style.opacity = ratio;
+        glowRight.style.transform = `translateX(${40 - ratio * 40}px)`;
+        glowLeft.style.opacity = 0;
+      } else {
+        const ratio = Math.min(-deltaX / dragThreshold, 1);
+        indicatorHate.style.opacity = ratio;
+        indicatorLove.style.opacity = 0;
+        votingCard.style.borderColor = `rgba(244, 63, 94, ${ratio * 0.5})`;
+        votingCard.style.boxShadow = `0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 30px rgba(244, 63, 94, ${ratio * 0.2})`;
+        
+        // Left glow dynamic activation
+        glowLeft.style.transition = 'none';
+        glowLeft.style.opacity = ratio;
+        glowLeft.style.transform = `translateX(${-40 + ratio * 40}px)`;
+        glowRight.style.opacity = 0;
+      }
+    }
+
+    function dragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      votingCard.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease';
+      glowLeft.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      glowRight.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      
+      const deltaX = currentX - startX;
+      
+      if (deltaX > dragThreshold) {
+        // Swipe Right -> Love
+        votingCard.style.transform = 'translate3d(500px, 0, 0) rotate(25deg)';
+        votingCard.style.opacity = '0';
+        glowRight.style.opacity = 1;
+        glowRight.style.transform = 'translateX(0)';
+        handleVote('Love');
+      } else if (deltaX < -dragThreshold) {
+        // Swipe Left -> Hate
+        votingCard.style.transform = 'translate3d(-500px, 0, 0) rotate(-25deg)';
+        votingCard.style.opacity = '0';
+        glowLeft.style.opacity = 1;
+        glowLeft.style.transform = 'translateX(0)';
+        handleVote('Hate');
+      } else {
+        // Reset card layout
+        votingCard.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
+        votingCard.style.opacity = '1';
+        votingCard.style.borderColor = '';
+        votingCard.style.boxShadow = '';
+        indicatorLove.style.opacity = 0;
+        indicatorHate.style.opacity = 0;
+        
+        // Reset side glows
+        glowLeft.style.opacity = 0;
+        glowLeft.style.transform = 'translateX(-40px)';
+        glowRight.style.opacity = 0;
+        glowRight.style.transform = 'translateX(40px)';
+      }
+    }
+
+    // Handles button clicks instead of swipes
+    function triggerButtonVote(choice) {
+      if (currentIndex >= logos.length) return;
+      
+      // Disable control buttons to avoid overlaps
+      btnLove.disabled = true;
+      btnHate.disabled = true;
+      
+      votingCard.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease';
+      glowLeft.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      glowRight.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      
+      if (choice === 'Love') {
+        indicatorLove.style.opacity = 1;
+        votingCard.style.transform = 'translate3d(500px, 0, 0) rotate(25deg)';
+        votingCard.style.opacity = '0';
+        glowRight.style.opacity = 1;
+        glowRight.style.transform = 'translateX(0)';
+      } else {
+        indicatorHate.style.opacity = 1;
+        votingCard.style.transform = 'translate3d(-500px, 0, 0) rotate(-25deg)';
+        votingCard.style.opacity = '0';
+        glowLeft.style.opacity = 1;
+        glowLeft.style.transform = 'translateX(0)';
+      }
+      
+      handleVote(choice);
+    }
+
+    // Save selection value
+    function handleVote(choice) {
+      const filename = logos[currentIndex];
+      votes[filename] = choice;
+
+      setTimeout(() => {
+        currentIndex++;
+        updateDisplay();
+      }, 300);
+    }
+
+    // Render selections summary list
+    function renderSummary() {
+      summaryList.innerHTML = '';
+      
+      logos.forEach(filename => {
+        const choice = votes[filename] || 'None';
+        const row = document.createElement('div');
+        row.className = 'summary-row';
+
+        const info = document.createElement('div');
+        info.className = 'summary-logo-info';
+
+        const thumbBox = document.createElement('div');
+        thumbBox.className = 'summary-thumb-box';
+
+        const thumbImg = document.createElement('img');
+        thumbImg.className = 'summary-thumb-img';
+        thumbImg.src = `logos/${filename}`;
+        thumbImg.alt = `Thumb: ${filename}`;
+
+        const name = document.createElement('span');
+        name.className = 'summary-logo-name';
+        name.textContent = filename;
+
+        thumbBox.appendChild(thumbImg);
+        info.appendChild(thumbBox);
+        info.appendChild(name);
+
+        const tag = document.createElement('span');
+        tag.className = `summary-tag tag-${choice.toLowerCase()}`;
+        tag.textContent = choice;
+
+        row.appendChild(info);
+        row.appendChild(tag);
+        summaryList.appendChild(row);
+      });
+    }
+
+    // Submit selection results
+    async function submitVotes() {
+      btnSubmit.disabled = true;
+      submitSpinner.style.display = 'inline-block';
+
+      if (!SHEET_URL) {
+        // Simulated submission flow
+        setTimeout(() => {
+          btnSubmit.disabled = false;
+          submitSpinner.style.display = 'none';
+          showScreen(screenThanks);
+        }, 1000);
+        return;
+      }
+
+      try {
+        // Send votes JSON string directly in the body using fetch with no-cors
+        await fetch(SHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+          body: JSON.stringify({
+            votes: votes,
+            logos: logos
+          })
+        });
+
+        // Show thank you screen immediately on submit
+        btnSubmit.disabled = false;
+        submitSpinner.style.display = 'none';
+        showScreen(screenThanks);
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while submitting feedback.');
+        btnSubmit.disabled = false;
+        submitSpinner.style.display = 'none';
+      }
+    }
+
+    // Restart voting loop
+    function restartPoll() {
+      currentIndex = 0;
+      votes = {};
+      progressBar.style.width = '0%';
+      showScreen(screenPoll);
+      updateDisplay();
+    }
+
+    // Load initial values
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
