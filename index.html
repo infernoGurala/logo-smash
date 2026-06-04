@@ -757,6 +757,16 @@
           throw new Error('The logos.json file is empty.');
         }
 
+        // Preload first two images immediately
+        if (logos.length > 0) {
+          const img1 = new Image();
+          img1.src = `logos/${logos[0]}`;
+        }
+        if (logos.length > 1) {
+          const img2 = new Image();
+          img2.src = `logos/${logos[1]}`;
+        }
+
         currentIndex = 0;
         votes = {};
         
@@ -801,6 +811,12 @@
       const filename = logos[currentIndex];
       logoDisplay.src = `logos/${filename}`;
       logoDisplay.alt = `Logo: ${filename}`;
+
+      // Preload the next image in the background to ensure instant loading
+      if (currentIndex + 1 < logos.length) {
+        const nextImg = new Image();
+        nextImg.src = `logos/${logos[currentIndex + 1]}`;
+      }
       
       // Update progress bar
       progressIndicator.textContent = `${currentIndex + 1} / ${logos.length}`;
@@ -975,6 +991,8 @@
       votes[filename] = choice;
 
       setTimeout(() => {
+        // Clear the image src before updating the card content to prevent flashing the old image
+        logoDisplay.removeAttribute('src');
         currentIndex++;
         updateDisplay();
       }, 300);
