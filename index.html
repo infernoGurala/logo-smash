@@ -192,10 +192,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.2);
+      background: transparent;
       border-radius: 18px;
-      padding: 1.75rem;
-      border: 1px solid rgba(255, 255, 255, 0.02);
+      padding: 0.5rem;
       position: relative;
       overflow: hidden;
     }
@@ -206,6 +205,8 @@
       object-fit: contain;
       pointer-events: none;
       transition: transform 0.3s ease;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.12)) drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));
     }
 
     /* Swipe feedback overlays */
