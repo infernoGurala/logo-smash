@@ -704,6 +704,7 @@
     let logos = [];
     let currentIndex = 0;
     let votes = {};
+    let isAnimating = false;
 
     // Touch/Drag physics tracking
     let startX = 0;
@@ -815,6 +816,7 @@
         votingCard.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease';
         votingCard.style.transform = 'scale(1) translateY(0)';
         votingCard.style.opacity = '1';
+        isAnimating = false; // Reset lock once card is back
       }, 50);
     }
 
@@ -838,10 +840,12 @@
     }
 
     function dragStart(e) {
-      if (currentIndex >= logos.length || isDragging) return;
+      if (currentIndex >= logos.length || isDragging || isAnimating) return;
       isDragging = true;
       startX = getEventX(e);
       startY = getEventY(e);
+      currentX = startX;
+      currentY = startY;
       
       votingCard.style.transition = 'none';
     }
@@ -904,6 +908,7 @@
       
       if (deltaX > dragThreshold) {
         // Swipe Right -> Love
+        isAnimating = true;
         votingCard.style.transform = 'translate3d(500px, 0, 0) rotate(25deg)';
         votingCard.style.opacity = '0';
         glowRight.style.opacity = 1;
@@ -911,6 +916,7 @@
         handleVote('Love');
       } else if (deltaX < -dragThreshold) {
         // Swipe Left -> Hate
+        isAnimating = true;
         votingCard.style.transform = 'translate3d(-500px, 0, 0) rotate(-25deg)';
         votingCard.style.opacity = '0';
         glowLeft.style.opacity = 1;
@@ -935,7 +941,8 @@
 
     // Handles button clicks instead of swipes
     function triggerButtonVote(choice) {
-      if (currentIndex >= logos.length) return;
+      if (currentIndex >= logos.length || isAnimating) return;
+      isAnimating = true;
       
       // Disable control buttons to avoid overlaps
       btnLove.disabled = true;
@@ -1056,6 +1063,7 @@
     function restartPoll() {
       currentIndex = 0;
       votes = {};
+      isAnimating = false;
       progressBar.style.width = '0%';
       showScreen(screenPoll);
       updateDisplay();
