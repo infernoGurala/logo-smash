@@ -944,6 +944,12 @@
     let votes = {};
     let isAnimating = false;
 
+    // Cache buster for logos to prevent browser caching old versions
+    const cacheBuster = Date.now();
+    function getLogoUrl(filename) {
+      return `logos/${filename}?v=${cacheBuster}`;
+    }
+
     // Touch/Drag physics tracking
     let startX = 0;
     let startY = 0;
@@ -998,11 +1004,11 @@
         // Preload first two images immediately
         if (logos.length > 0) {
           const img1 = new Image();
-          img1.src = `logos/${logos[0]}`;
+          img1.src = getLogoUrl(logos[0]);
         }
         if (logos.length > 1) {
           const img2 = new Image();
-          img2.src = `logos/${logos[1]}`;
+          img2.src = getLogoUrl(logos[1]);
         }
 
         currentIndex = 0;
@@ -1047,13 +1053,13 @@
 
       // Load current asset
       const filename = logos[currentIndex];
-      logoDisplay.src = `logos/${filename}`;
+      logoDisplay.src = getLogoUrl(filename);
       logoDisplay.alt = `Logo: ${filename}`;
 
       // Preload the next image in the background to ensure instant loading
       if (currentIndex + 1 < logos.length) {
         const nextImg = new Image();
-        nextImg.src = `logos/${logos[currentIndex + 1]}`;
+        nextImg.src = getLogoUrl(logos[currentIndex + 1]);
       }
       
       // Update progress bar
@@ -1253,7 +1259,7 @@
 
         const thumbImg = document.createElement('img');
         thumbImg.className = 'summary-thumb-img';
-        thumbImg.src = `logos/${filename}`;
+        thumbImg.src = getLogoUrl(filename);
         thumbImg.alt = `Thumb: ${filename}`;
 
         const name = document.createElement('span');
